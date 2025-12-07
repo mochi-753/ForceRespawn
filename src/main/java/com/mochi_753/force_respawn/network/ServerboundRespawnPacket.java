@@ -4,6 +4,7 @@ import com.mochi_753.force_respawn.ForceRespawn;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.GameRules;
+import net.minecraft.world.level.GameType;
 import net.minecraftforge.network.NetworkEvent;
 
 import java.util.function.Supplier;
@@ -26,6 +27,10 @@ public record ServerboundRespawnPacket() {
                 boolean keepInventory = player.level().getGameRules().getBoolean(GameRules.RULE_KEEPINVENTORY);
                 if (!keepInventory) player.getInventory().dropAll();
                 player.connection.player = player.server.getPlayerList().respawn(player, keepInventory);
+                if (player.server.isHardcore()) {
+                    player.setGameMode(GameType.SPECTATOR);
+                    player.level().getGameRules().getRule(GameRules.RULE_SPECTATORSGENERATECHUNKS).set(false, player.server);
+                }
             }
         });
         context.setPacketHandled(true);
